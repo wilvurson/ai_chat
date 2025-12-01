@@ -246,6 +246,24 @@ export default function AdminCharactersPage() {
             <form onSubmit={handleUpdateCharacter}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-image" className="text-right">
+                    Image
+                  </Label>
+                  <Input
+                    id="edit-image"
+                    name="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setSelectedFile(e.target.files?.[0] || null)
+                    }
+                    className="col-span-3"
+                  />
+                  <div className="col-span-4 text-sm text-muted-foreground">
+                    Leave empty to keep current image
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-name" className="text-right">
                     Name
                   </Label>
@@ -271,24 +289,6 @@ export default function AdminCharactersPage() {
                     required
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="edit-image" className="text-right">
-                    Image
-                  </Label>
-                  <Input
-                    id="edit-image"
-                    name="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setSelectedFile(e.target.files?.[0] || null)
-                    }
-                    className="col-span-3"
-                  />
-                  <div className="col-span-4 text-sm text-muted-foreground">
-                    Leave empty to keep current image
-                  </div>
-                </div>
               </div>
               <DialogFooter>
                 <Button type="submit">Update Character</Button>
@@ -301,19 +301,16 @@ export default function AdminCharactersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Image</TableHead>
+
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {characters.map((character) => (
             <TableRow key={character.id}>
-              <TableCell>{character.id}</TableCell>
-              <TableCell>{character.name}</TableCell>
-              <TableCell>{character.desciption}</TableCell>
               <TableCell>
                 <img
                   src={character.image}
@@ -321,6 +318,9 @@ export default function AdminCharactersPage() {
                   className="w-12 h-12 object-cover rounded"
                 />
               </TableCell>
+              <TableCell>{character.name}</TableCell>
+              <TableCell>{character.desciption}</TableCell>
+
               <TableCell>
                 <div className="flex gap-2">
                   <Button
