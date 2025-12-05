@@ -2,17 +2,22 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import { requireAuth } from "@/lib/auth";
 
 export const DELETE = async (
   req: NextRequest,
   { params }: { params: Promise<{ characterId: string }> }
 ) => {
   try {
+    const user = await requireAuth(req);
     const { characterId: id } = await params;
 
-    // Get the character to find the image path
+    // Get the character to find the image path (ensure it belongs to the user)
     const character = await prisma.character.findUnique({
-      where: { id },
+      where: {
+        id,
+        userId: user.id,
+      },
     });
 
     if (!character) {
@@ -33,12 +38,13 @@ export const DELETE = async (
       }
     }
 
-    // Delete all messages associated with this character first
+    // Delete all messages associated with this character and user first
     await prisma.message.deleteMany({
       where: {
         character: {
           id,
         },
+        userId: user.id,
       },
     });
 
@@ -62,6 +68,7 @@ export const PUT = async (
   { params }: { params: Promise<{ characterId: string }> }
 ) => {
   try {
+    const user = await requireAuth(req);
     const { characterId: id } = await params;
     const formData = await req.formData();
 
@@ -78,9 +85,12 @@ export const PUT = async (
       );
     }
 
-    // Get current character
+    // Get current character (ensure it belongs to the user)
     const currentCharacter = await prisma.character.findUnique({
-      where: { id },
+      where: {
+        id,
+        userId: user.id,
+      },
     });
 
     if (!currentCharacter) {

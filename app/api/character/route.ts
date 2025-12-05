@@ -1,20 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 export const GET = async (req: NextRequest) => {
   try {
-    const characters = await prisma.character.findMany();
+    const user = await requireAuth(req);
+    const characters = await prisma.character.findMany({
+      where: { userId: user.id },
+    });
     return NextResponse.json(characters);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch characters" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 };
 
 export const POST = async (req: NextRequest) => {
   try {
+    const user = await requireAuth(req);
     const formData = await req.formData();
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
@@ -56,6 +58,11 @@ export const POST = async (req: NextRequest) => {
         basePrompt,
         greetingText,
         image: imagePath,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
       },
     });
 

@@ -194,7 +194,7 @@ export default function AdminCharactersPage() {
         <h1 className="text-2xl font-bold">Character Management</h1>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Create Character</Button>
+            <Button className="cursor-pointer">Create Character</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -246,7 +246,7 @@ export default function AdminCharactersPage() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="greetingText" className="text-right">
-                    Greeting Text
+                    Greeting
                   </Label>
                   <Input
                     id="greetingText"
@@ -275,7 +275,7 @@ export default function AdminCharactersPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Create Character</Button>
+                <Button type="submit" className="cursor-pointer">Create Character</Button>
               </DialogFooter>
             </form>
           </DialogContent>

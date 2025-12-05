@@ -14,16 +14,16 @@ export default function AdminLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <Button variant="ghost">Admin Dashboard</Button>
+                <Button variant="ghost" className="cursor-pointer">Admin Dashboard</Button>
               </Link>
               <Link href="/admin/characters">
-                <Button variant="ghost">Characters</Button>
+                <Button variant="ghost" className="cursor-pointer">Characters</Button>
               </Link>
             </div>
             <div className="flex items-center space-x-2">
               <ThemeToggle />
               <Link href="/">
-                <Button variant="outline">Back to App</Button>
+                <Button variant="outline" className="cursor-pointer">Log Out</Button>
               </Link>
             </div>
           </div>

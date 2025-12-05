@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "blue" | "pink";
 
 interface ThemeContextType {
   theme: Theme;
@@ -31,17 +31,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (mounted) {
       const root = document.documentElement;
-      if (theme === "dark") {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
+      root.classList.remove("dark", "blue", "pink");
+      if (theme !== "light") {
+        root.classList.add(theme);
       }
       localStorage.setItem("theme", theme);
     }
   }, [theme, mounted]);
 
+  const themes: Theme[] = ["light", "dark", "blue", "pink"];
+
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setTheme((prev) => themes[(themes.indexOf(prev) + 1) % themes.length]);
   };
 
   return (

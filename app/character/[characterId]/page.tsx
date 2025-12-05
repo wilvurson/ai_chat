@@ -5,7 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { FormattedMessage } from "@/components/formatted-message";
 
 interface Message {
   id: string;
@@ -22,8 +24,28 @@ interface Character {
 }
 
 export default function CharacterChatPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const params = useParams();
   const characterId = params.characterId as string;
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-current border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -102,6 +124,27 @@ export default function CharacterChatPage() {
     }
   };
 
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const response = await fetch(`/api/character/${characterId}/message`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messageId }),
+      });
+
+      if (response.ok) {
+        // Refetch messages to update the conversation
+        await fetchMessages();
+      } else {
+        console.error("Failed to delete message");
+      }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    }
+  };
+
   if (!character) {
     return <div className="p-6">Loading character...</div>;
   }
@@ -111,7 +154,11 @@ export default function CharacterChatPage() {
       <div className="sticky top-0 z-10 bg-background border-b p-4">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link href="/admin/characters">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hover:cursor-pointer"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Characters
             </Button>
@@ -134,27 +181,39 @@ export default function CharacterChatPage() {
 
       <div className="max-w-4xl mx-auto p-4">
         <Card className="h-[calc(100vh-200px)] flex flex-col">
-          <CardHeader className="flex-shrink-0">
+          <CardHeader className="shrink-0">
             <CardTitle>Chat with {character.name}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto pr-4 mb-4">
+            <div className="flex-1 overflow-y-auto pr-4 mb-4 scrollbar-hide">
               <div className="space-y-4 pb-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${
+                    className={`flex group ${
                       message.role === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <div
-                      className={`max-w-[70%] p-3 rounded-lg break-words ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      {message.content}
+                    <div className="flex items-start gap-2 max-w-[70%]">
+                      <div
+                        className={`flex-1 p-3 rounded-lg break-words ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <FormattedMessage content={message.content} />
+                      </div>
+                      {message.role === "user" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMessage(message.id)}
+                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -164,15 +223,15 @@ export default function CharacterChatPage() {
 
             <form
               onSubmit={sendMessage}
-              className="flex items-end gap-3 flex-shrink-0 p-4 border-t bg-background/50"
+              className="flex items-end gap-4 rounded-3xl p-4 bg-background/50"
             >
-              <div className="flex-1 relative">
+              <div className="flex-1 relative flex">
                 <textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={isLoading ? "Sending..." : "Message..."}
                   disabled={isLoading}
-                  className="w-full min-h-[44px] max-h-32 resize-none rounded-2xl border border-input bg-background px-4 py-3 pr-12 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full max-h-32 resize-none rounded-2xl border border-input bg-background px-4 py-3 pr-12 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -188,7 +247,7 @@ export default function CharacterChatPage() {
                 type="submit"
                 disabled={isLoading || !inputMessage.trim()}
                 size="sm"
-                className="h-10 w-10 rounded-full p-0 shrink-0"
+                className="h-11 w-11 rounded-full p-0"
               >
                 {isLoading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
